@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,6 +21,7 @@
       <div class="text-sm text-slate-500">Paste your model order & raw revenue. Click <span class="font-semibold">Align</span>.</div>
     </header>
 
+    <!-- Inputs -->
     <section class="grid md:grid-cols-2 gap-4">
       <div class="bg-white rounded-2xl shadow p-4 space-y-3">
         <h2 class="font-semibold">Model List (Order to Keep)</h2>
@@ -40,95 +40,89 @@ Blink VIP - $1009.72
       </div>
     </section>
 
-    <section class="bg-white rounded-2xl shadow p-4 space-y-3">
+    <!-- Aliases (hidden) -->
+    <section class="bg-white rounded-2xl shadow p-4 space-y-3" style="display:none;">
       <div class="flex items-center gap-3">
         <h2 class="font-semibold">Alias Mapping (Optional)</h2>
         <span class="text-xs text-slate-500">Left = name in your model list → Right = name as it appears in revenue list</span>
       </div>
-      <textarea id="aliases" rows="20" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 p-3 font-mono text-sm">
-{
-  "ali": "ali",
-  "ali free": "ali free",
-  "ali smiles": "ali smiles",
-  "ali smiles free": "ali smiles free",
-  "amber": "amber",
-  "asteria": "asteria",
-  "blink vip": "blink vip",
-  "blinkx": "blinkx",
-  "blinkx fansly": "blinkx fansly",
-  "chelsea free": "chelsea free",
-  "chelsea wilde": "chelsea wilde",
-  "clarus": "clarus",
-  "clarus free": "clarus free",
-  "cora": "cora",
-  "dallas": "dallas",
-  "darcie": "darcie",
-  "darshelle free": "darshelle free",
-  "darshelle vip": "darshelle main",
-  "davina": "davina",
-  "davina free": "davina free",
-  "evie free": "evie free",
-  "evie rose": "evie rose",
-  "florence": "florence",
-  "frizzy": "frizzy",
-  "heidi free": "heidi free",
-  "heidi vip": "heidi vip",
-  "holly free": "holly free",
-  "holly oftv": "holly oftv",
-  "holly vip": "holly vip",
-  "jay": "jay",
-  "jay free": "jay free",
-  "jenn": "jenn",
-  "julie free": "julie free",
-  "julie vip": "julie vip",
-  "kailyn free": "kailyn free",
-  "kailyn vip": "kailyn vip",
-  "kay free": "kay free",
-  "kay": "kay natrix",
-  "lauren": "lauren",
-  "lauren free": "lauren free",
-  "lilly hart": "lilly hart",
-  "lillyhart": "lilly hart",
-  "luna": "luna",
-  "margs free": "margs free",
-  "margs vip": "margs vip",
-  "miko": "miko",
-  "miko free": "miko free",
-  "morgan": "morgan",
-  "morgan free": "morgan free",
-  "mystic free": "mystic free",
-  "mystic vip": "mystic vip",
-  "mysticbeing": "mysticbeing",
-  "mythiccal": "mythiccal",
-  "mythiccal free": "mythiccal",
-  "mythiccal vip": "mythiccal vip",
-  "nichole free": "nichole free",
-  "nichole vip": "nichole vip",
-  "reed": "reed",
-  "river": "river",
-  "roxie free": "roxie free",
-  "roxie vip": "roxie sinner",
-  "saffron tiffy": "saffron tiffy",
-  "saffron vip": "saffron vip",
-  "sam free": "sam free",
-  "sam vip": "sam vip",
-  "sarah arabic": "sarah arabic",
-  "savannah": "savannah",
-  "savannah free": "savannah free",
-  "scarlett": "scarlett",
-  "taaij": "taaij",
-  "tabitha": "tabitha",
-  "tayla": "tayla",
-  "valeria": "valeria",
-  "veronica": "veronica",
-  "zalia": "zalia"
-}
-      </textarea>
+      <textarea id="aliases" rows="8" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 p-3 font-mono text-sm" spellcheck="false">{ 
+  "Chelsea VIP": "Chelsea Wilde",
+  "Blinkx VIP": "Blink VIP",
+  "Blinkx Free": "Blinkx",
+  "Evie VIP": "Evie Rose",
+  "Jay VIP": "Jay",
+  "Kay": "Kay Natrix",
+  "Roxie VIP": "Roxie Sinner",
+  "Lillyhart": "Lilly Hart",
+  "Sarah": "Sarah Arabic",
+  "Darshelle VIP": "Darshelle Main",
+  "Clarus VIP": "Clarus",
+  "Miko VIP": "Miko",
+  "Morgan VIP": "Morgan",
+  "Davina VIP": "Davina",
+  "Mythiccal Free": "Mythiccal",
+  "Darshelle Free": "Darshelle Free",
+  "Julie Free": "Julie Free",
+  "Julie VIP": "Julie VIP",
+  "Morgan Free": "Morgan Free",
+  "Nichole Free": "Nichole Free",
+  "Nichole VIP": "Nichole VIP",
+  "Sam Free": "Sam Free",
+  "Sam VIP": "Sam VIP",
+  "Saffron Tiffy": "Saffron Tiffy",
+  "Saffron VIP": "Saffron VIP",
+  "Heidi Free": "Heidi Free",
+  "Heidi VIP": "Heidi VIP",
+  "Holly Free": "Holly Free",
+  "Holly OFTV": "Holly OFTV",
+  "Holly VIP": "Holly VIP",
+  "Margs Free": "Margs Free",
+  "Margs VIP": "Margs VIP",
+  "Kay Free": "Kay Free",
+  "Kailyn Free": "Kailyn Free",
+  "Kailyn VIP": "Kailyn VIP",
+  "Lauren Free": "Lauren Free",
+  "Lauren": "Lauren",
+  "Blink VIP": "Blink VIP",
+  "Blinkx": "Blinkx",
+  "Ali Free": "Ali Free",
+  "Ali Smiles": "Ali Smiles",
+  "Ali": "Ali",
+  "Davina Free": "Davina Free",
+  "Evie Free": "Evie Free",
+  "Jay Free": "Jay Free",
+  "Luna": "Luna",
+  "River": "River",
+  "Tabitha": "Tabitha",
+  "Taaij": "Taaij",
+  "Zalia": "Zalia",
+  "Dallas": "Dallas",
+  "Darcie": "Darcie",
+  "Frizzy": "Frizzy",
+  "Mystic Free": "Mystic Free",
+  "Mystic VIP": "Mystic VIP",
+  "MysticBeing": "MysticBeing",
+  "Mythiccal": "Mythiccal",
+  "Reed": "Reed",
+  "Roxie Free": "Roxie Free",
+  "Roxie Sinner": "Roxie Sinner",
+  "Savannah": "Savannah",
+  "Savannah Free": "Savannah Free",
+  "Sarah Arabic": "Sarah Arabic",
+  "Scarlett": "Scarlett",
+  "Tayla": "Tayla",
+  "Valeria": "Valeria",
+  "Veronica": "Veronica",
+  "Nichole": "Nichole VIP",
+  "Miko Free": "Miko Free"
+}</textarea>
       <div class="text-xs text-slate-500">
         Tip: Paste JSON only for the day. If you leave it empty, only exact/fuzzy matches are used.
       </div>
     </section>
 
+    <!-- Controls -->
     <section class="flex flex-wrap items-center gap-3">
       <button id="btnAlign" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-medium shadow hover:bg-indigo-700">Align</button>
       <button id="btnCopyPlain" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Copy Plain Column</button>
@@ -137,6 +131,7 @@ Blink VIP - $1009.72
       <span id="sumOut" class="ml-auto text-sm text-slate-600"></span>
     </section>
 
+    <!-- Results -->
     <section class="grid md:grid-cols-2 gap-4">
       <div class="bg-white rounded-2xl shadow p-4 space-y-3">
         <div class="flex items-center gap-2">
@@ -160,6 +155,7 @@ Blink VIP - $1009.72
   </div>
 
   <script>
+    // ---------- Utilities ----------
     const $ = (sel) => document.querySelector(sel);
     const money = (n) => isFinite(n) ? `$${Number(n).toFixed(2)}` : 'N/A';
 
@@ -169,13 +165,14 @@ Blink VIP - $1009.72
 
     function normalizeName(s){
       return s
-        .toLowerCase()
         .replace(/\(\s*new\s*\)/ig,'')
         .replace(/\s+/g,' ')
         .replace(/[–—]/g,'-')
-        .trim();
+        .trim()
+        .toLowerCase();
     }
 
+    // Parse revenue lines like: "Name - $123" or with @handles anywhere
     function parseRevenueMap(text){
       const lines = parseLines(text);
       const map = {};
@@ -189,40 +186,46 @@ Blink VIP - $1009.72
         }
         name = name.replace(/\s*-\s*@.*$/,''); // remove trailing handle after dash
         name = name.replace(/\s*@.+$/,'');      // remove trailing @handle
-        name = normalizeName(name);
-        map[name] = amt;
+        map[normalizeName(name)] = amt;
       }
       return map;
     }
 
-    // defaultAliases is empty here — all aliases come from textarea prefilled
-    const defaultAliases = {};
+    // Default aliases from textarea (preloaded)
+    let defaultAliases = {};
+    try {
+      defaultAliases = JSON.parse($('#aliases').value);
+      // convert keys and values to lowercase for case-insensitive matching
+      const normalizedAliases = {};
+      for(const [k,v] of Object.entries(defaultAliases)){
+        normalizedAliases[k.toLowerCase()] = v.toLowerCase();
+      }
+      defaultAliases = normalizedAliases;
+    } catch(e){
+      defaultAliases = {};
+    }
 
+    // Fuzzy engine for unmatched names
     function makeFuser(keys){
       return new Fuse(keys, { includeScore:true, threshold:0.25, ignoreLocation:true, distance:40 });
     }
 
     function align(){
-      const modelsRaw = parseLines($('#models').value);
-      const models = modelsRaw.map(normalizeName);
+      const models = parseLines($('#models').value).map(normalizeName);
       const revenueMap = parseRevenueMap($('#revenue').value);
 
+      // merge alias JSON from textarea (manual per day)
       let userAliases = {};
       try {
         const raw = $('#aliases').value.trim();
-        if(raw){
-          const parsed = JSON.parse(raw);
-          userAliases = {};
-          for(const [k,v] of Object.entries(parsed)){
-            userAliases[normalizeName(k)] = normalizeName(v);
-          }
-        }
-      } catch(e){
-        alert('Alias JSON is invalid. Please fix.');
-        return;
+        if(raw){ userAliases = JSON.parse(raw); }
+      } catch(e){ alert('Alias JSON is invalid. Please fix.'); return; }
+      // normalize userAliases keys and values to lowercase
+      const userAliasesLower = {};
+      for(const [k,v] of Object.entries(userAliases)){
+        userAliasesLower[k.toLowerCase()] = v.toLowerCase();
       }
-
-      const alias = { ...defaultAliases, ...userAliases };
+      const alias = { ...defaultAliases, ...userAliasesLower };
 
       const revenueKeys = Object.keys(revenueMap);
       const fuser = makeFuser(revenueKeys);
@@ -231,21 +234,19 @@ Blink VIP - $1009.72
       let total = 0;
       let counts = {exact:0, alias:0, fuzzy:0, missing:0};
 
-      for(let i=0; i<models.length; i++){
-        const model = models[i];
-        const origModel = modelsRaw[i]; // preserve original casing for output
-        let key = model;
+      for(const model of models){
+        const modelNorm = model;
+        let key = modelNorm;
         let method = 'exact';
 
-        if(alias[model]){
-          key = alias[model];
-          method = 'alias';
-        }
+        // alias map first (manual)
+        if(alias[modelNorm]){ key = alias[modelNorm]; method = 'alias'; }
 
         let amt = revenueMap[key];
 
+        // if exact missing, try fuzzy on key & on model
         if(amt === undefined){
-          const tryNames = [key, model];
+          const tryNames = [key, modelNorm];
           let best = null;
           for(const t of tryNames){
             const r = fuser.search(t);
@@ -254,7 +255,7 @@ Blink VIP - $1009.72
               if(!best || hit.score < best.score) best = hit;
             }
           }
-          if(best && best.score <= 0.12){
+          if(best && best.score <= 0.12){ // confident match
             key = best.item;
             amt = revenueMap[key];
             method = method === 'alias' ? 'alias+fuzzy' : 'fuzzy';
@@ -262,24 +263,28 @@ Blink VIP - $1009.72
         }
 
         if(amt === undefined){
-          rows.push({model:origModel, key:'', amount:NaN, method:'missing'});
+          rows.push({model:modelNorm, key:'', amount:NaN, method:'missing'});
           counts.missing++;
         } else {
           total += amt;
           if(method==='exact') counts.exact++; else if(method.includes('alias')) counts.alias++; else counts.fuzzy++;
-          rows.push({model:origModel, key, amount:amt, method});
+          rows.push({model:modelNorm, key, amount:amt, method});
         }
       }
 
+      // Render plain output (model + value)
       const plain = rows.map(r => `${r.model} - ${isNaN(r.amount)?'N/A':money(r.amount)}`).join('\n');
       $('#plainOut').textContent = plain;
 
+      // Render values-only column (just $ or N/A)
       const valuesOnly = rows.map(r => isNaN(r.amount) ? 'N/A' : money(r.amount)).join('\n');
       $('#valuesOut').textContent = valuesOnly;
 
+      // Totals & counters
       $('#sumOut').textContent = `Total = ${money(total)}`;
       $('#statusCount').textContent = `Exact ${counts.exact} · Alias ${counts.alias} · Fuzzy ${counts.fuzzy} · Missing ${counts.missing}`;
 
+      // Report
       const frag = document.createDocumentFragment();
       rows.forEach(r => {
         const div = document.createElement('div');
@@ -300,20 +305,22 @@ Blink VIP - $1009.72
       const report = $('#report');
       report.innerHTML = ''; report.appendChild(frag);
 
+      // store state (optional convenience)
       localStorage.setItem('mra_models', $('#models').value);
       localStorage.setItem('mra_revenue', $('#revenue').value);
       localStorage.setItem('mra_alias', $('#aliases').value);
     }
 
+    // Copy buttons
     function copyPlain(){
       const text = $('#plainOut').textContent;
       if(!text.trim()) return;
-      navigator.clipboard.writeText(text).then(()=>alert('Copied aligned column to clipboard'));
+      navigator.clipboard.writeText(text).then(()=>toast('Copied aligned column to clipboard'));
     }
     function copyValues(){
       const text = $('#valuesOut').textContent;
       if(!text.trim()) return;
-      navigator.clipboard.writeText(text).then(()=>alert('Copied values-only column to clipboard'));
+      navigator.clipboard.writeText(text).then(()=>toast('Copied values-only column to clipboard'));
     }
 
     function downloadCsv(){
@@ -332,12 +339,22 @@ Blink VIP - $1009.72
       URL.revokeObjectURL(url);
     }
 
+    // Toast
+    function toast(msg){
+      const t = document.createElement('div');
+      t.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-4 py-2 rounded-full shadow';
+      t.textContent = msg; document.body.appendChild(t);
+      setTimeout(()=>t.remove(), 1400);
+    }
+
+    // Restore last state for convenience
     window.addEventListener('DOMContentLoaded', () => {
       const m = localStorage.getItem('mra_models'); if(m) $('#models').value = m;
       const r = localStorage.getItem('mra_revenue'); if(r) $('#revenue').value = r;
       const a = localStorage.getItem('mra_alias'); if(a) $('#aliases').value = a;
     });
 
+    // Events
     $('#btnAlign').addEventListener('click', align);
     $('#btnCopyPlain').addEventListener('click', copyPlain);
     $('#btnCopyValues').addEventListener('click', copyValues);
