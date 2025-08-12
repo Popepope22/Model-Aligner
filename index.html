@@ -179,7 +179,8 @@ Blink VIP - $1009.72
       const lines = parseLines(text);
       const map = {};
       for(const line of lines){
-        const m = line.match(/\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/);
+        //const m = line.match(/\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/);
+          const m = line.match(/\$\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?)/);
         if(!m) continue;
         const amt = parseFloat(m[1].replace(/,/g,''));
         let name = line.split(' - ')[0];
@@ -364,4 +365,5 @@ Blink VIP - $1009.72
   </script>
 </body>
 </html>
+
 
