@@ -8,206 +8,206 @@
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
   <style>
     .badge{ display:inline-flex; align-items:center; padding:2px 8px; border-radius:9999px; font-size:12px; font-weight:600 }
-    .badge.exact{ background:#d1fae5; color:#065f46 }
-    .badge.alias{ background:#e0e7ff; color:#3730a3 }
-    .badge.fuzzy{ background:#fef3c7; color:#92400e }
-    .badge.missing{ background:#ffe4e6; color:#9f1239 }
+    .badge.exact{ background:#d1fae5; color:#065f46 }     /* emerald */
+    .badge.alias{ background:#e0e7ff; color:#3730a3 }     /* indigo */
+    .badge.fuzzy{ background:#fef3c7; color:#92400e }     /* amber  */
+    .badge.missing{ background:#ffe4e6; color:#9f1239 }   /* rose   */
   </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
-<div class="max-w-6xl mx-auto p-6 space-y-6">
-  <header class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold">Model–Revenue Aligner</h1>
-    <div class="text-sm text-slate-500">Paste your model order & raw revenue. Click <span class="font-semibold">Align</span>.</div>
-  </header>
+  <div class="max-w-6xl mx-auto p-6 space-y-6">
+    <header class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold">Model–Revenue Aligner</h1>
+      <div class="text-sm text-slate-500">Paste your model order & raw revenue. Click <span class="font-semibold">Align</span>.</div>
+    </header>
 
-  <section class="grid md:grid-cols-2 gap-4">
-    <div class="bg-white rounded-2xl shadow p-4 space-y-3">
-      <h2 class="font-semibold">Model List (Order to Keep)</h2>
-      <textarea id="models" rows="16" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 p-3 font-mono text-sm" placeholder="One model per line..."></textarea>
-      <p class="text-xs text-slate-500">We keep this exact order. No alphabetizing.</p>
-    </div>
+    <!-- Inputs -->
+    <section class="grid md:grid-cols-2 gap-4">
+      <div class="bg-white rounded-2xl shadow p-4 space-y-3">
+        <h2 class="font-semibold">Model List (Order to Keep)</h2>
+        <textarea id="models" rows="16" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 p-3 font-mono text-sm" placeholder="One model per line..."></textarea>
+        <p class="text-xs text-slate-500">We keep this exact order. No alphabetizing.</p>
+      </div>
 
-    <div class="bg-white rounded-2xl shadow p-4 space-y-3">
-      <h2 class="font-semibold">Revenue List (Raw)</h2>
-      <textarea id="revenue" rows="16" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 p-3 font-mono text-sm" placeholder="Examples:
+      <div class="bg-white rounded-2xl shadow p-4 space-y-3">
+        <h2 class="font-semibold">Revenue List (Raw)</h2>
+        <textarea id="revenue" rows="16" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 p-3 font-mono text-sm" placeholder="Examples:
 Ali - $1576.23
 Chelsea Wilde - $239.15
-Blink VIP - $1009.72"></textarea>
-      <p class="text-xs text-slate-500">Aliases & fuzzy matching are supported.</p>
-    </div>
-  </section>
-
-  <section class="flex flex-wrap items-center gap-3">
-    <button id="btnAlign" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-medium shadow hover:bg-indigo-700">Align</button>
-    <button id="btnCopyPlain" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Copy Plain Column</button>
-    <button id="btnCopyValues" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Copy Values</button>
-    <button id="btnDownloadCsv" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Download CSV</button>
-    <span id="sumOut" class="ml-auto text-sm text-slate-600"></span>
-  </section>
-
-  <section class="grid md:grid-cols-2 gap-4">
-    <div class="bg-white rounded-2xl shadow p-4 space-y-3">
-      <div class="flex items-center gap-2">
-        <h2 class="font-semibold">Aligned Output (Plain Column)</h2>
-        <span id="statusCount" class="text-xs text-slate-500"></span>
+Blink VIP - $1009.72
+@handles are fine; we'll strip them..."></textarea>
+        <p class="text-xs text-slate-500">Aliases & fuzzy matching are supported.</p>
       </div>
-      <pre id="plainOut" class="whitespace-pre-wrap break-words font-mono text-sm bg-slate-50 rounded-xl p-3 min-h-[200px]"></pre>
-      <div class="space-y-2">
-        <h3 class="font-semibold">Values Only</h3>
-        <pre id="valuesOut" class="whitespace-pre-wrap break-words font-mono text-sm bg-slate-50 rounded-xl p-3 min-h-[120px]"></pre>
+    </section>
+
+    <!-- Controls -->
+    <section class="flex flex-wrap items-center gap-3">
+      <button id="btnAlign" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-medium shadow hover:bg-indigo-700">Align</button>
+      <button id="btnCopyPlain" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Copy Plain Column</button>
+      <button id="btnCopyValues" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Copy Values</button>
+      <button id="btnDownloadCsv" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Download CSV</button>
+      <span id="sumOut" class="ml-auto text-sm text-slate-600"></span>
+    </section>
+
+    <!-- Results -->
+    <section class="grid md:grid-cols-2 gap-4">
+      <div class="bg-white rounded-2xl shadow p-4 space-y-3">
+        <div class="flex items-center gap-2">
+          <h2 class="font-semibold">Aligned Output (Plain Column)</h2>
+          <span id="statusCount" class="text-xs text-slate-500"></span>
+        </div>
+        <pre id="plainOut" class="whitespace-pre-wrap break-words font-mono text-sm bg-slate-50 rounded-xl p-3 min-h-[200px]"></pre>
+        <div class="space-y-2">
+          <h3 class="font-semibold">Values Only</h3>
+          <pre id="valuesOut" class="whitespace-pre-wrap break-words font-mono text-sm bg-slate-50 rounded-xl p-3 min-h-[120px]"></pre>
+        </div>
       </div>
-    </div>
-    <div class="bg-white rounded-2xl shadow p-4 space-y-3">
-      <div class="flex items-center gap-2">
-        <h2 class="font-semibold">Match Report</h2>
-        <span class="text-xs text-slate-500">How each line was matched</span>
+      <div class="bg-white rounded-2xl shadow p-4 space-y-3">
+        <div class="flex items-center gap-2">
+          <h2 class="font-semibold">Match Report</h2>
+          <span class="text-xs text-slate-500">How each line was matched</span>
+        </div>
+        <div id="report" class="space-y-2 text-sm"></div>
       </div>
-      <div id="report" class="space-y-2 text-sm"></div>
-    </div>
-  </section>
-</div>
+    </section>
+  </div>
 
-<script>
-const $ = (sel) => document.querySelector(sel);
-const money = (n) => isFinite(n) ? `$${Number(n).toFixed(2)}` : 'N/A';
-function parseLines(text){ return text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean); }
-function normalizeName(s){ return s.replace(/\s+/g,' ').replace(/[–—]/g,'-').replace(/\s*@.*$/,'').trim().toLowerCase(); }
-function parseRevenueMap(text){
-  const map = {};
-  for(const line of parseLines(text)){
-    const m = line.match(/\$\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?)/);
-    if(!m) continue;
-    let name = line.split(' - ')[0] || line.replace(/\$.*$/,'').trim();
-    name = name.replace(/\s*-\s*@.*$/,'').replace(/\s*@.*$/,'').trim();
-    map[normalizeName(name)] = parseFloat(m[1].replace(/,/g,''));
-  }
-  return map;
-}
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+  <script>
+    // ------------------ UTILITIES ------------------
+    const $ = s=>document.querySelector(s);
+    const money = n => isFinite(n) ? `$${Number(n).toFixed(2)}` : 'N/A';
 
-// Full alias mapping (case-insensitive)
-const defaultAliases = {
-  "heidi lavon free":"heidi free",
-  "heidi lavon vip":"heidi vip",
-  "julie free":"julie free",
-  "julie vip":"julie vip",
-  "ali smiles free":"ali smiles",
-  "chelsea wilde":"chelsea vip",
-  "blinkx":"blink vip",
-  "blinkx fansly":"blink vip",
-  "evie rose":"evie vip",
-  "jay":"jay vip",
-  "kay natrix":"kay",
-  "roxie sinner":"roxie vip",
-  "lilly hart":"lillyhart",
-  "sarah arabic":"sarah",
-  "clarus":"clarus vip",
-  "miko":"miko vip",
-  "miko free":"miko free",
-  "morgan":"morgan vip",
-  "morgan free":"morgan free",
-  "davina":"davina vip",
-  "davina free":"davina free",
-  "mythiccal":"mythiccal vip",
-  "mythiccal vip":"mythiccal vip",
-  "mysticbeing":"mysticbeing",
-  "mystic free":"mystic free",
-  "mystic vip":"mystic vip",
-  "darshelle main":"darshelle vip",
-  "darshelle free":"darshelle free",
-  "ali":"ali",
-  "ali free":"ali free",
-  "amber":"amber",
-  "asteria":"asteria",
-  "asteria free":"asteria free",
-  "blink vip":"blink vip",
-  "cora":"cora",
-  "dallas":"dallas",
-  "darcie":"darcie",
-  "frizzy":"frizzy",
-  "florence":"florence",
-  "reed":"reed",
-  "savannah":"savannah",
-  "savannah free":"savannah free",
-  "scarlett":"scarlett",
-  "tayla":"tayla",
-  "tabitha":"tabitha",
-  "luna":"luna",
-  "valeria":"valeria",
-  "zalia":"zalia",
-  "holly free":"holly free",
-  "holly vip":"holly vip",
-  "holly oftv":"holly oftv",
-  "kailyn free":"kailyn free",
-  "kailyn vip":"kailyn vip",
-  "lauren":"lauren",
-  "lauren free":"lauren free",
-  "jay free":"jay free",
-  "river":"river",
-  "joanie jobro":"joanie jobro",
-  "roxie free":"roxie free"
-};
+    function parseLines(text){ return text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean); }
+    function normalizeName(s){ return s.replace(/\(\s*new\s*\)/ig,'').replace(/\s+/g,' ').replace(/[–—]/g,'-').replace(/\s*@.*$/,'').trim().toLowerCase(); }
 
-// Fuzzy engine
-function makeFuser(keys){ return new Fuse(keys, { includeScore:true, threshold:0.35, ignoreLocation:true, distance:40 }); }
-
-function align(){
-  const models=parseLines($('#models').value).map(normalizeName);
-  const revenueMap=parseRevenueMap($('#revenue').value);
-
-  const revenueKeys=Object.keys(revenueMap);
-  const fuser=makeFuser(revenueKeys);
-
-  const rows=[]; let total=0;
-  let counts={exact:0, alias:0, fuzzy:0, missing:0};
-
-  for(const model of models){
-    let key=model, method='exact';
-    if(defaultAliases[model]){ key=defaultAliases[model]; method='alias'; }
-    let amt=revenueMap[key];
-    if(amt===undefined){
-      const r=fuser.search(model);
-      if(r && r.length){
-        const hit=r[0];
-        if(hit.score<=0.12){ key=hit.item; amt=revenueMap[key]; method=method==='alias'?'alias+fuzzy':'fuzzy'; }
+    function parseRevenueMap(text){
+      const map = {};
+      for(const line of parseLines(text)){
+        const m = line.match(/\$\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?)/);
+        if(!m) continue;
+        let name = line.split(' - ')[0] || line.replace(/\$.*$/,'').trim();
+        name = name.replace(/\s*-\s*@.*$/,'').replace(/\s*@.*$/,'').trim();
+        map[normalizeName(name)] = parseFloat(m[1].replace(/,/g,''));
       }
+      return map;
     }
-    if(amt===undefined){ rows.push({model,key:'',amount:NaN,method:'missing'}); counts.missing++; }
-    else{ total+=amt; if(method==='exact') counts.exact++; else if(method.includes('alias')) counts.alias++; else counts.fuzzy++; rows.push({model,key,amount:amt,method}); }
-  }
 
-  $('#plainOut').textContent=rows.map(r=>`${r.model} - ${isNaN(r.amount)?'N/A':money(r.amount)}`).join('\n');
-  $('#valuesOut').textContent=rows.map(r=>isNaN(r.amount)?'N/A':money(r.amount)).join('\n');
-  $('#sumOut').textContent=`Total = ${money(total)}`;
-  $('#statusCount').textContent=`Exact ${counts.exact} · Alias ${counts.alias} · Fuzzy ${counts.fuzzy} · Missing ${counts.missing}`;
+    const defaultAliases = {
+      "heidi lavon free":"heidi free",
+      "heidi lavon vip":"heidi vip",
+      "julie free":"julie free",
+      "julie vip":"julie vip",
+      "ali smiles free":"ali smiles",
+      "chelsea wilde":"chelsea vip",
+      "blinkx":"blink vip",
+      "blinkx fansly":"blink vip",
+      "evie rose":"evie vip",
+      "jay":"jay vip",
+      "kay natrix":"kay",
+      "roxie sinner":"roxie vip",
+      "lilly hart":"lillyhart",
+      "sarah arabic":"sarah",
+      "clarus":"clarus vip",
+      "miko":"miko vip",
+      "miko free":"miko free",
+      "morgan":"morgan vip",
+      "morgan free":"morgan free",
+      "davina":"davina vip",
+      "davina free":"davina free",
+      "mythiccal":"mythiccal vip",
+      "mythiccal vip":"mythiccal vip",
+      "mysticbeing":"mysticbeing",
+      "mystic free":"mystic free",
+      "mystic vip":"mystic vip",
+      "darshelle main":"darshelle vip",
+      "darshelle free":"darshelle free",
+      "ali":"ali",
+      "ali free":"ali free",
+      "amber":"amber",
+      "asteria":"asteria",
+      "asteria free":"asteria free",
+      "blink vip":"blink vip",
+      "cora":"cora",
+      "dallas":"dallas",
+      "darcie":"darcie",
+      "frizzy":"frizzy",
+      "florence":"florence",
+      "reed":"reed",
+      "savannah":"savannah",
+      "savannah free":"savannah free",
+      "scarlett":"scarlett",
+      "tayla":"tayla",
+      "tabitha":"tabitha",
+      "luna":"luna",
+      "valeria":"valeria",
+      "zalia":"zalia",
+      "holly free":"holly free",
+      "holly vip":"holly vip",
+      "holly oftv":"holly oftv",
+      "kailyn free":"kailyn free",
+      "kailyn vip":"kailyn vip",
+      "lauren":"lauren",
+      "lauren free":"lauren free",
+      "jay free":"jay free",
+      "river":"river",
+      "joanie jobro":"joanie jobro",
+      "roxie free":"roxie free"
+    };
 
-  const frag=document.createDocumentFragment();
-  rows.forEach(r=>{
-    const div=document.createElement('div'); div.className='flex items-center justify-between gap-2 border border-slate-200 rounded-lg px-3 py-2';
-    const left=document.createElement('div');
-    left.innerHTML=`<span class="font-semibold">${r.model}</span>`+(r.key?` <span class="text-slate-400">→</span> <span class="text-slate-600">${r.key}</span>`:'');
-    const right=document.createElement('div');
-    const badge=document.createElement('span'); badge.className='badge '+(r.method==='exact'?'exact':r.method.includes('alias')?'alias':r.method==='fuzzy'?'fuzzy':'missing'); badge.textContent=r.method;
-    const amt=document.createElement('span'); amt.className='ml-3 font-mono'; amt.textContent=isNaN(r.amount)?'N/A':money(r.amount);
-    right.appendChild(badge); right.appendChild(amt);
-    div.appendChild(left); div.appendChild(right); frag.appendChild(div);
-  });
-  const report=$('#report'); report.innerHTML=''; report.appendChild(frag);
-  localStorage.setItem('mra_models',$('#models').value);
-  localStorage.setItem('mra_revenue',$('#revenue').value);
-});
+    function makeFuser(keys){ return new Fuse(keys,{includeScore:true, threshold:0.25, ignoreLocation:true, distance:40}); }
 
-$('#btnAlign').addEventListener('click',align);
-$('#btnCopyPlain').addEventListener('click',()=>navigator.clipboard.writeText($('#plainOut').textContent));
-$('#btnCopyValues').addEventListener('click',()=>navigator.clipboard.writeText($('#valuesOut').textContent));
-$('#btnDownloadCsv').addEventListener('click',()=>{
-  const lines=$('#plainOut').textContent.split(/\n/).filter(Boolean);
-  if(!lines.length) return;
-  const rows=lines.map(l=>{ const m=l.match(/^(.*) - \$(.*)$/); return m?`${JSON.stringify(m[1])},${m[2]}`:`${JSON.stringify(l)},`; });
-  const csv='Model,Amount\n'+rows.join('\n');
-  const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a');
-  a.href=url; a.download='aligned.csv'; a.click(); URL.revokeObjectURL(url);
-});
-</script>
+    function align(){
+      const models = parseLines($('#models').value).map(normalizeName);
+      const revenueMap = parseRevenueMap($('#revenue').value);
+      const revenueKeys = Object.keys(revenueMap);
+      const fuser = makeFuser(revenueKeys);
+      const rows=[]; let total=0; let counts={exact:0, alias:0, fuzzy:0, missing:0};
+
+      for(const model of models){
+        let key = model; let method='exact';
+        if(defaultAliases[model]){ key = defaultAliases[model]; method='alias'; }
+        let amt = revenueMap[key];
+
+        if(amt===undefined){
+          let best=null;
+          [key, model].forEach(t=>{
+            const r=fuser.search(t);
+            if(r.length && (!best || r[0].score<best.score)) best=r[0];
+          });
+          if(best && best.score<=0.12){ key=best.item; amt=revenueMap[key]; method=method.includes('alias')?'alias+fuzzy':'fuzzy'; }
+        }
+
+        if(amt===undefined){ rows.push({model,key:'',amount:NaN,method:'missing'}); counts.missing++; }
+        else{ total+=amt; if(method==='exact')counts.exact++; else if(method.includes('alias'))counts.alias++; else counts.fuzzy++; rows.push({model,key,amount:amt,method}); }
+      }
+
+      $('#plainOut').textContent = rows.map(r=>`${r.model} - ${isNaN(r.amount)?'N/A':money(r.amount)}`).join('\n');
+      $('#valuesOut').textContent = rows.map(r=>isNaN(r.amount)?'N/A':money(r.amount)).join('\n');
+      $('#sumOut').textContent = `Total = ${money(total)}`;
+      $('#statusCount').textContent = `Exact ${counts.exact} · Alias ${counts.alias} · Fuzzy ${counts.fuzzy} · Missing ${counts.missing}`;
+
+      const frag=document.createDocumentFragment();
+      rows.forEach(r=>{
+        const div=document.createElement('div'); div.className='flex items-center justify-between gap-2 border border-slate-200 rounded-lg px-3 py-2';
+        const left=document.createElement('div'); left.innerHTML=`<span class="font-semibold">${r.model}</span>`+(r.key?` <span class="text-slate-400">→</span> <span class="text-slate-600">${r.key}</span>`:'');
+        const right=document.createElement('div'); const badge=document.createElement('span'); badge.className='badge '+(r.method==='exact'?'exact':r.method.includes('alias')?'alias':r.method==='fuzzy'?'fuzzy':'missing'); badge.textContent=r.method;
+        const amt=document.createElement('span'); amt.className='ml-3 font-mono'; amt.textContent=isNaN(r.amount)?'N/A':money(r.amount);
+        right.appendChild(badge); right.appendChild(amt); div.appendChild(left); div.appendChild(right); frag.appendChild(div);
+      });
+      $('#report').innerHTML=''; $('#report').appendChild(frag);
+    }
+
+    $('#btnAlign').addEventListener('click',align);
+    $('#btnCopyPlain').addEventListener('click',()=>navigator.clipboard.writeText($('#plainOut').textContent));
+    $('#btnCopyValues').addEventListener('click',()=>navigator.clipboard.writeText($('#valuesOut').textContent));
+    $('#btnDownloadCsv').addEventListener('click',()=>{
+      const lines=$('#plainOut').textContent.split(/\n/).filter(Boolean);
+      if(!lines.length) return;
+      const rows=lines.map(l=>{ const m=l.match(/^(.*) - \$(.*)$/); return m?`${JSON.stringify(m[1])},${m[2]}`:`${JSON.stringify(l)},`; });
+      const csv='Model,Amount\n'+rows.join('\n');
+      const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='aligned.csv'; a.click(); URL.revokeObjectURL(a.href);
+    });
+  </script>
 </body>
 </html>
