@@ -8,362 +8,206 @@
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
   <style>
     .badge{ display:inline-flex; align-items:center; padding:2px 8px; border-radius:9999px; font-size:12px; font-weight:600 }
-    .badge.exact{ background:#d1fae5; color:#065f46 }     /* emerald */
-    .badge.alias{ background:#e0e7ff; color:#3730a3 }     /* indigo */
-    .badge.fuzzy{ background:#fef3c7; color:#92400e }     /* amber  */
-    .badge.missing{ background:#ffe4e6; color:#9f1239 }   /* rose   */
+    .badge.exact{ background:#d1fae5; color:#065f46 }
+    .badge.alias{ background:#e0e7ff; color:#3730a3 }
+    .badge.fuzzy{ background:#fef3c7; color:#92400e }
+    .badge.missing{ background:#ffe4e6; color:#9f1239 }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
-  <div class="max-w-6xl mx-auto p-6 space-y-6">
-    <header class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold">Model–Revenue Aligner</h1>
-      <div class="text-sm text-slate-500">Paste your model order & raw revenue. Click <span class="font-semibold">Align</span>.</div>
-    </header>
+<div class="max-w-6xl mx-auto p-6 space-y-6">
+  <header class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold">Model–Revenue Aligner</h1>
+    <div class="text-sm text-slate-500">Paste your model order & raw revenue. Click <span class="font-semibold">Align</span>.</div>
+  </header>
 
-    <!-- Inputs -->
-    <section class="grid md:grid-cols-2 gap-4">
-      <div class="bg-white rounded-2xl shadow p-4 space-y-3">
-        <h2 class="font-semibold">Model List (Order to Keep)</h2>
-        <textarea id="models" rows="16" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 p-3 font-mono text-sm" placeholder="One model per line..."></textarea>
-        <p class="text-xs text-slate-500">We keep this exact order. No alphabetizing.</p>
-      </div>
+  <section class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow p-4 space-y-3">
+      <h2 class="font-semibold">Model List (Order to Keep)</h2>
+      <textarea id="models" rows="16" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 p-3 font-mono text-sm" placeholder="One model per line..."></textarea>
+      <p class="text-xs text-slate-500">We keep this exact order. No alphabetizing.</p>
+    </div>
 
-      <div class="bg-white rounded-2xl shadow p-4 space-y-3">
-        <h2 class="font-semibold">Revenue List (Raw)</h2>
-        <textarea id="revenue" rows="16" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 p-3 font-mono text-sm" placeholder="Examples:
+    <div class="bg-white rounded-2xl shadow p-4 space-y-3">
+      <h2 class="font-semibold">Revenue List (Raw)</h2>
+      <textarea id="revenue" rows="16" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 p-3 font-mono text-sm" placeholder="Examples:
 Ali - $1576.23
 Chelsea Wilde - $239.15
-Blink VIP - $1009.72
-@handles are fine; we'll strip them..."></textarea>
-        <p class="text-xs text-slate-500">Aliases & fuzzy matching are supported (see below).</p>
+Blink VIP - $1009.72"></textarea>
+      <p class="text-xs text-slate-500">Aliases & fuzzy matching are supported.</p>
+    </div>
+  </section>
+
+  <section class="flex flex-wrap items-center gap-3">
+    <button id="btnAlign" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-medium shadow hover:bg-indigo-700">Align</button>
+    <button id="btnCopyPlain" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Copy Plain Column</button>
+    <button id="btnCopyValues" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Copy Values</button>
+    <button id="btnDownloadCsv" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Download CSV</button>
+    <span id="sumOut" class="ml-auto text-sm text-slate-600"></span>
+  </section>
+
+  <section class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white rounded-2xl shadow p-4 space-y-3">
+      <div class="flex items-center gap-2">
+        <h2 class="font-semibold">Aligned Output (Plain Column)</h2>
+        <span id="statusCount" class="text-xs text-slate-500"></span>
       </div>
-    </section>
-
-    <!-- Aliases (hidden) -->
-    <section class="bg-white rounded-2xl shadow p-4 space-y-3" style="display:none;">
-      <div class="flex items-center gap-3">
-        <h2 class="font-semibold">Alias Mapping (Optional)</h2>
-        <span class="text-xs text-slate-500">Left = name in your model list → Right = name as it appears in revenue list</span>
+      <pre id="plainOut" class="whitespace-pre-wrap break-words font-mono text-sm bg-slate-50 rounded-xl p-3 min-h-[200px]"></pre>
+      <div class="space-y-2">
+        <h3 class="font-semibold">Values Only</h3>
+        <pre id="valuesOut" class="whitespace-pre-wrap break-words font-mono text-sm bg-slate-50 rounded-xl p-3 min-h-[120px]"></pre>
       </div>
-      <textarea id="aliases" rows="8" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 p-3 font-mono text-sm" spellcheck="false">{ 
-  "Chelsea VIP": "Chelsea Wilde",
-  "Blinkx VIP": "Blink VIP",
-  "Blinkx Free": "Blinkx",
-  "Evie VIP": "Evie Rose",
-  "Jay VIP": "Jay",
-  "Kay": "Kay Natrix",
-  "Roxie VIP": "Roxie Sinner",
-  "Lillyhart": "Lilly Hart",
-  "Sarah": "Sarah Arabic",
-  "Darshelle VIP": "Darshelle Main",
-  "Clarus VIP": "Clarus",
-  "Miko VIP": "Miko",
-  "Morgan VIP": "Morgan",
-  "Davina VIP": "Davina",
-  "Mythiccal Free": "Mythiccal",
-  "Darshelle Free": "Darshelle Free",
-  "Julie Free": "Julie Free",
-  "Julie VIP": "Julie VIP",
-  "Morgan Free": "Morgan Free",
-  "Nichole Free": "Nichole Free",
-  "Nichole VIP": "Nichole VIP",
-  "Sam Free": "Sam Free",
-  "Sam VIP": "Sam VIP",
-  "Saffron Tiffy": "Saffron Tiffy",
-  "Saffron VIP": "Saffron VIP",
-  "Heidi Free": "Heidi Free",
-  "Heidi VIP": "Heidi VIP",
-  "Heidi Free": "Heidi Lavon Free",
-  "Heidi VIP": "Heidi Lavon VIP",
-  "Holly Free": "Holly Free",
-  "Holly OFTV": "Holly OFTV",
-  "Holly VIP": "Holly VIP",
-  "Margs Free": "Margs Free",
-  "Margs VIP": "Margs VIP",
-  "Kay Free": "Kay Free",
-  "Kailyn Free": "Kailyn Free",
-  "Kailyn VIP": "Kailyn VIP",
-  "Lauren Free": "Lauren Free",
-  "Lauren": "Lauren",
-  "Blink VIP": "Blink VIP",
-  "Blinkx": "Blinkx",
-  "Ali Free": "Ali Free",
-  "Ali Smiles": "Ali Smiles",
-  "Ali": "Ali",
-  "Davina Free": "Davina Free",
-  "Evie Free": "Evie Free",
-  "Jay Free": "Jay Free",
-  "Luna": "Luna",
-  "River": "River",
-  "Tabitha": "Tabitha",
-  "Taaij": "Taaij",
-  "Zalia": "Zalia",
-  "Dallas": "Dallas",
-  "Darcie": "Darcie",
-  "Frizzy": "Frizzy",
-  "Mystic Free": "Mystic Free",
-  "Mystic VIP": "Mystic VIP",
-  "MysticBeing": "MysticBeing",
-  "Mythiccal": "Mythiccal",
-  "Reed": "Reed",
-  "Roxie Free": "Roxie Free",
-  "Roxie Sinner": "Roxie Sinner",
-  "Savannah": "Savannah",
-  "Savannah Free": "Savannah Free",
-  "Sarah Arabic": "Sarah Arabic",
-  "Scarlett": "Scarlett",
-  "Tayla": "Tayla",
-  "Valeria": "Valeria",
-  "Veronica": "Veronica",
-  "Nichole": "Nichole VIP",
-  "Miko Free": "Miko Free"
-}</textarea>
-      <div class="text-xs text-slate-500">
-        Tip: Paste JSON only for the day. If you leave it empty, only exact/fuzzy matches are used.
+    </div>
+    <div class="bg-white rounded-2xl shadow p-4 space-y-3">
+      <div class="flex items-center gap-2">
+        <h2 class="font-semibold">Match Report</h2>
+        <span class="text-xs text-slate-500">How each line was matched</span>
       </div>
-    </section>
+      <div id="report" class="space-y-2 text-sm"></div>
+    </div>
+  </section>
+</div>
 
-    <!-- Controls -->
-    <section class="flex flex-wrap items-center gap-3">
-      <button id="btnAlign" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-medium shadow hover:bg-indigo-700">Align</button>
-      <button id="btnCopyPlain" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Copy Plain Column</button>
-      <button id="btnCopyValues" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Copy Values</button>
-      <button id="btnDownloadCsv" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Download CSV</button>
-      <span id="sumOut" class="ml-auto text-sm text-slate-600"></span>
-    </section>
+<script>
+const $ = (sel) => document.querySelector(sel);
+const money = (n) => isFinite(n) ? `$${Number(n).toFixed(2)}` : 'N/A';
+function parseLines(text){ return text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean); }
+function normalizeName(s){ return s.replace(/\s+/g,' ').replace(/[–—]/g,'-').replace(/\s*@.*$/,'').trim().toLowerCase(); }
+function parseRevenueMap(text){
+  const map = {};
+  for(const line of parseLines(text)){
+    const m = line.match(/\$\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?)/);
+    if(!m) continue;
+    let name = line.split(' - ')[0] || line.replace(/\$.*$/,'').trim();
+    name = name.replace(/\s*-\s*@.*$/,'').replace(/\s*@.*$/,'').trim();
+    map[normalizeName(name)] = parseFloat(m[1].replace(/,/g,''));
+  }
+  return map;
+}
 
-    <!-- Results -->
-    <section class="grid md:grid-cols-2 gap-4">
-      <div class="bg-white rounded-2xl shadow p-4 space-y-3">
-        <div class="flex items-center gap-2">
-          <h2 class="font-semibold">Aligned Output (Plain Column)</h2>
-          <span id="statusCount" class="text-xs text-slate-500"></span>
-        </div>
-        <pre id="plainOut" class="whitespace-pre-wrap break-words font-mono text-sm bg-slate-50 rounded-xl p-3 min-h-[200px]"></pre>
-        <div class="space-y-2">
-          <h3 class="font-semibold">Values Only</h3>
-          <pre id="valuesOut" class="whitespace-pre-wrap break-words font-mono text-sm bg-slate-50 rounded-xl p-3 min-h-[120px]"></pre>
-        </div>
-      </div>
-      <div class="bg-white rounded-2xl shadow p-4 space-y-3">
-        <div class="flex items-center gap-2">
-          <h2 class="font-semibold">Match Report</h2>
-          <span class="text-xs text-slate-500">How each line was matched</span>
-        </div>
-        <div id="report" class="space-y-2 text-sm"></div>
-      </div>
-    </section>
-  </div>
+// Full alias mapping (case-insensitive)
+const defaultAliases = {
+  "heidi lavon free":"heidi free",
+  "heidi lavon vip":"heidi vip",
+  "julie free":"julie free",
+  "julie vip":"julie vip",
+  "ali smiles free":"ali smiles",
+  "chelsea wilde":"chelsea vip",
+  "blinkx":"blink vip",
+  "blinkx fansly":"blink vip",
+  "evie rose":"evie vip",
+  "jay":"jay vip",
+  "kay natrix":"kay",
+  "roxie sinner":"roxie vip",
+  "lilly hart":"lillyhart",
+  "sarah arabic":"sarah",
+  "clarus":"clarus vip",
+  "miko":"miko vip",
+  "miko free":"miko free",
+  "morgan":"morgan vip",
+  "morgan free":"morgan free",
+  "davina":"davina vip",
+  "davina free":"davina free",
+  "mythiccal":"mythiccal vip",
+  "mythiccal vip":"mythiccal vip",
+  "mysticbeing":"mysticbeing",
+  "mystic free":"mystic free",
+  "mystic vip":"mystic vip",
+  "darshelle main":"darshelle vip",
+  "darshelle free":"darshelle free",
+  "ali":"ali",
+  "ali free":"ali free",
+  "amber":"amber",
+  "asteria":"asteria",
+  "asteria free":"asteria free",
+  "blink vip":"blink vip",
+  "cora":"cora",
+  "dallas":"dallas",
+  "darcie":"darcie",
+  "frizzy":"frizzy",
+  "florence":"florence",
+  "reed":"reed",
+  "savannah":"savannah",
+  "savannah free":"savannah free",
+  "scarlett":"scarlett",
+  "tayla":"tayla",
+  "tabitha":"tabitha",
+  "luna":"luna",
+  "valeria":"valeria",
+  "zalia":"zalia",
+  "holly free":"holly free",
+  "holly vip":"holly vip",
+  "holly oftv":"holly oftv",
+  "kailyn free":"kailyn free",
+  "kailyn vip":"kailyn vip",
+  "lauren":"lauren",
+  "lauren free":"lauren free",
+  "jay free":"jay free",
+  "river":"river",
+  "joanie jobro":"joanie jobro",
+  "roxie free":"roxie free"
+};
 
-  <script>
-    // ---------- Utilities ----------
-    const $ = (sel) => document.querySelector(sel);
-    const money = (n) => isFinite(n) ? `$${Number(n).toFixed(2)}` : 'N/A';
+// Fuzzy engine
+function makeFuser(keys){ return new Fuse(keys, { includeScore:true, threshold:0.35, ignoreLocation:true, distance:40 }); }
 
-    function parseLines(text){
-      return text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-    }
+function align(){
+  const models=parseLines($('#models').value).map(normalizeName);
+  const revenueMap=parseRevenueMap($('#revenue').value);
 
-    function normalizeName(s){
-      return s
-        .replace(/\(\s*new\s*\)/ig,'')
-        .replace(/\s+/g,' ')
-        .replace(/[–—]/g,'-')
-        .trim()
-        .toLowerCase();
-    }
+  const revenueKeys=Object.keys(revenueMap);
+  const fuser=makeFuser(revenueKeys);
 
-    // Parse revenue lines like: "Name - $123" or with @handles anywhere
-    function parseRevenueMap(text){
-      const lines = parseLines(text);
-      const map = {};
-      for(const line of lines){
-        //const m = line.match(/\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?|[0-9]+(?:\.[0-9]{1,2})?)/);
-          const m = line.match(/\$\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?)/);
-        if(!m) continue;
-        const amt = parseFloat(m[1].replace(/,/g,''));
-        let name = line.split(' - ')[0];
-        if(!name || name.includes('$')){
-          name = line.replace(/\$.*$/, '').trim();
-        }
-        name = name.replace(/\s*-\s*@.*$/,''); // remove trailing handle after dash
-        name = name.replace(/\s*@.+$/,'');      // remove trailing @handle
-        map[normalizeName(name)] = amt;
+  const rows=[]; let total=0;
+  let counts={exact:0, alias:0, fuzzy:0, missing:0};
+
+  for(const model of models){
+    let key=model, method='exact';
+    if(defaultAliases[model]){ key=defaultAliases[model]; method='alias'; }
+    let amt=revenueMap[key];
+    if(amt===undefined){
+      const r=fuser.search(model);
+      if(r && r.length){
+        const hit=r[0];
+        if(hit.score<=0.12){ key=hit.item; amt=revenueMap[key]; method=method==='alias'?'alias+fuzzy':'fuzzy'; }
       }
-      return map;
     }
+    if(amt===undefined){ rows.push({model,key:'',amount:NaN,method:'missing'}); counts.missing++; }
+    else{ total+=amt; if(method==='exact') counts.exact++; else if(method.includes('alias')) counts.alias++; else counts.fuzzy++; rows.push({model,key,amount:amt,method}); }
+  }
 
-    // Default aliases from textarea (preloaded)
-    let defaultAliases = {};
-    try {
-      defaultAliases = JSON.parse($('#aliases').value);
-      // convert keys and values to lowercase for case-insensitive matching
-      const normalizedAliases = {};
-      for(const [k,v] of Object.entries(defaultAliases)){
-        normalizedAliases[k.toLowerCase()] = v.toLowerCase();
-      }
-      defaultAliases = normalizedAliases;
-    } catch(e){
-      defaultAliases = {};
-    }
+  $('#plainOut').textContent=rows.map(r=>`${r.model} - ${isNaN(r.amount)?'N/A':money(r.amount)}`).join('\n');
+  $('#valuesOut').textContent=rows.map(r=>isNaN(r.amount)?'N/A':money(r.amount)).join('\n');
+  $('#sumOut').textContent=`Total = ${money(total)}`;
+  $('#statusCount').textContent=`Exact ${counts.exact} · Alias ${counts.alias} · Fuzzy ${counts.fuzzy} · Missing ${counts.missing}`;
 
-    // Fuzzy engine for unmatched names
-    function makeFuser(keys){
-      return new Fuse(keys, { includeScore:true, threshold:0.25, ignoreLocation:true, distance:40 });
-    }
+  const frag=document.createDocumentFragment();
+  rows.forEach(r=>{
+    const div=document.createElement('div'); div.className='flex items-center justify-between gap-2 border border-slate-200 rounded-lg px-3 py-2';
+    const left=document.createElement('div');
+    left.innerHTML=`<span class="font-semibold">${r.model}</span>`+(r.key?` <span class="text-slate-400">→</span> <span class="text-slate-600">${r.key}</span>`:'');
+    const right=document.createElement('div');
+    const badge=document.createElement('span'); badge.className='badge '+(r.method==='exact'?'exact':r.method.includes('alias')?'alias':r.method==='fuzzy'?'fuzzy':'missing'); badge.textContent=r.method;
+    const amt=document.createElement('span'); amt.className='ml-3 font-mono'; amt.textContent=isNaN(r.amount)?'N/A':money(r.amount);
+    right.appendChild(badge); right.appendChild(amt);
+    div.appendChild(left); div.appendChild(right); frag.appendChild(div);
+  });
+  const report=$('#report'); report.innerHTML=''; report.appendChild(frag);
+  localStorage.setItem('mra_models',$('#models').value);
+  localStorage.setItem('mra_revenue',$('#revenue').value);
+});
 
-    function align(){
-      const models = parseLines($('#models').value).map(normalizeName);
-      const revenueMap = parseRevenueMap($('#revenue').value);
-
-      // merge alias JSON from textarea (manual per day)
-      let userAliases = {};
-      try {
-        const raw = $('#aliases').value.trim();
-        if(raw){ userAliases = JSON.parse(raw); }
-      } catch(e){ alert('Alias JSON is invalid. Please fix.'); return; }
-      // normalize userAliases keys and values to lowercase
-      const userAliasesLower = {};
-      for(const [k,v] of Object.entries(userAliases)){
-        userAliasesLower[k.toLowerCase()] = v.toLowerCase();
-      }
-      const alias = { ...defaultAliases, ...userAliasesLower };
-
-      const revenueKeys = Object.keys(revenueMap);
-      const fuser = makeFuser(revenueKeys);
-
-      const rows = [];
-      let total = 0;
-      let counts = {exact:0, alias:0, fuzzy:0, missing:0};
-
-      for(const model of models){
-        const modelNorm = model;
-        let key = modelNorm;
-        let method = 'exact';
-
-        // alias map first (manual)
-        if(alias[modelNorm]){ key = alias[modelNorm]; method = 'alias'; }
-
-        let amt = revenueMap[key];
-
-        // if exact missing, try fuzzy on key & on model
-        if(amt === undefined){
-          const tryNames = [key, modelNorm];
-          let best = null;
-          for(const t of tryNames){
-            const r = fuser.search(t);
-            if(r && r.length){
-              const hit = r[0];
-              if(!best || hit.score < best.score) best = hit;
-            }
-          }
-          if(best && best.score <= 0.12){ // confident match
-            key = best.item;
-            amt = revenueMap[key];
-            method = method === 'alias' ? 'alias+fuzzy' : 'fuzzy';
-          }
-        }
-
-        if(amt === undefined){
-          rows.push({model:modelNorm, key:'', amount:NaN, method:'missing'});
-          counts.missing++;
-        } else {
-          total += amt;
-          if(method==='exact') counts.exact++; else if(method.includes('alias')) counts.alias++; else counts.fuzzy++;
-          rows.push({model:modelNorm, key, amount:amt, method});
-        }
-      }
-
-      // Render plain output (model + value)
-      const plain = rows.map(r => `${r.model} - ${isNaN(r.amount)?'N/A':money(r.amount)}`).join('\n');
-      $('#plainOut').textContent = plain;
-
-      // Render values-only column (just $ or N/A)
-      const valuesOnly = rows.map(r => isNaN(r.amount) ? 'N/A' : money(r.amount)).join('\n');
-      $('#valuesOut').textContent = valuesOnly;
-
-      // Totals & counters
-      $('#sumOut').textContent = `Total = ${money(total)}`;
-      $('#statusCount').textContent = `Exact ${counts.exact} · Alias ${counts.alias} · Fuzzy ${counts.fuzzy} · Missing ${counts.missing}`;
-
-      // Report
-      const frag = document.createDocumentFragment();
-      rows.forEach(r => {
-        const div = document.createElement('div');
-        div.className = 'flex items-center justify-between gap-2 border border-slate-200 rounded-lg px-3 py-2';
-        const left = document.createElement('div');
-        left.innerHTML = `<span class="font-semibold">${r.model}</span>` + (r.key?` <span class="text-slate-400">→</span> <span class="text-slate-600">${r.key}</span>`:'');
-        const right = document.createElement('div');
-        const badge = document.createElement('span');
-        badge.className = 'badge ' + (r.method==='exact'?'exact': r.method.includes('alias')?'alias': r.method==='fuzzy'?'fuzzy':'missing');
-        badge.textContent = r.method;
-        const amt = document.createElement('span');
-        amt.className = 'ml-3 font-mono';
-        amt.textContent = isNaN(r.amount)?'N/A':money(r.amount);
-        right.appendChild(badge); right.appendChild(amt);
-        div.appendChild(left); div.appendChild(right);
-        frag.appendChild(div);
-      });
-      const report = $('#report');
-      report.innerHTML = ''; report.appendChild(frag);
-
-      // store state (optional convenience)
-      localStorage.setItem('mra_models', $('#models').value);
-      localStorage.setItem('mra_revenue', $('#revenue').value);
-      localStorage.setItem('mra_alias', $('#aliases').value);
-    }
-
-    // Copy buttons
-    function copyPlain(){
-      const text = $('#plainOut').textContent;
-      if(!text.trim()) return;
-      navigator.clipboard.writeText(text).then(()=>toast('Copied aligned column to clipboard'));
-    }
-    function copyValues(){
-      const text = $('#valuesOut').textContent;
-      if(!text.trim()) return;
-      navigator.clipboard.writeText(text).then(()=>toast('Copied values-only column to clipboard'));
-    }
-
-    function downloadCsv(){
-      const lines = $('#plainOut').textContent.split(/\n/).filter(Boolean);
-      if(!lines.length) return;
-      const rows = lines.map(l=>{
-        const m = l.match(/^(.*) - \$(.*)$/);
-        if(m) return `${JSON.stringify(m[1])},${m[2]}`;
-        return `${JSON.stringify(l)},`;
-      });
-      const csv = 'Model,Amount\n' + rows.join('\n');
-      const blob = new Blob([csv], {type:'text/csv'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'aligned.csv'; a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    // Toast
-    function toast(msg){
-      const t = document.createElement('div');
-      t.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-4 py-2 rounded-full shadow';
-      t.textContent = msg; document.body.appendChild(t);
-      setTimeout(()=>t.remove(), 1400);
-    }
-
-    // Restore last state for convenience
-    window.addEventListener('DOMContentLoaded', () => {
-      const m = localStorage.getItem('mra_models'); if(m) $('#models').value = m;
-      const r = localStorage.getItem('mra_revenue'); if(r) $('#revenue').value = r;
-      const a = localStorage.getItem('mra_alias'); if(a) $('#aliases').value = a;
-    });
-
-    // Events
-    $('#btnAlign').addEventListener('click', align);
-    $('#btnCopyPlain').addEventListener('click', copyPlain);
-    $('#btnCopyValues').addEventListener('click', copyValues);
-    $('#btnDownloadCsv').addEventListener('click', downloadCsv);
-  </script>
+$('#btnAlign').addEventListener('click',align);
+$('#btnCopyPlain').addEventListener('click',()=>navigator.clipboard.writeText($('#plainOut').textContent));
+$('#btnCopyValues').addEventListener('click',()=>navigator.clipboard.writeText($('#valuesOut').textContent));
+$('#btnDownloadCsv').addEventListener('click',()=>{
+  const lines=$('#plainOut').textContent.split(/\n/).filter(Boolean);
+  if(!lines.length) return;
+  const rows=lines.map(l=>{ const m=l.match(/^(.*) - \$(.*)$/); return m?`${JSON.stringify(m[1])},${m[2]}`:`${JSON.stringify(l)},`; });
+  const csv='Model,Amount\n'+rows.join('\n');
+  const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download='aligned.csv'; a.click(); URL.revokeObjectURL(url);
+});
+</script>
 </body>
 </html>
-
-
