@@ -1,213 +1,285 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Model–Revenue Aligner</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
-  <style>
-    .badge{ display:inline-flex; align-items:center; padding:2px 8px; border-radius:9999px; font-size:12px; font-weight:600 }
-    .badge.exact{ background:#d1fae5; color:#065f46 }     /* emerald */
-    .badge.alias{ background:#e0e7ff; color:#3730a3 }     /* indigo */
-    .badge.fuzzy{ background:#fef3c7; color:#92400e }     /* amber  */
-    .badge.missing{ background:#ffe4e6; color:#9f1239 }   /* rose   */
-  </style>
-</head>
-<body class="bg-slate-50 text-slate-900">
-  <div class="max-w-6xl mx-auto p-6 space-y-6">
-    <header class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold">Model–Revenue Aligner</h1>
-      <div class="text-sm text-slate-500">Paste your model order & raw revenue. Click <span class="font-semibold">Align</span>.</div>
-    </header>
-
-    <!-- Inputs -->
-    <section class="grid md:grid-cols-2 gap-4">
-      <div class="bg-white rounded-2xl shadow p-4 space-y-3">
-        <h2 class="font-semibold">Model List (Order to Keep)</h2>
-        <textarea id="models" rows="16" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 p-3 font-mono text-sm" placeholder="One model per line..."></textarea>
-        <p class="text-xs text-slate-500">We keep this exact order. No alphabetizing.</p>
-      </div>
-
-      <div class="bg-white rounded-2xl shadow p-4 space-y-3">
-        <h2 class="font-semibold">Revenue List (Raw)</h2>
-        <textarea id="revenue" rows="16" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 p-3 font-mono text-sm" placeholder="Examples:
-Ali - $1576.23
-Chelsea Wilde - $239.15
-Blink VIP - $1009.72
-@handles are fine; we'll strip them..."></textarea>
-        <p class="text-xs text-slate-500">Aliases & fuzzy matching are supported.</p>
-      </div>
-    </section>
-
-    <!-- Controls -->
-    <section class="flex flex-wrap items-center gap-3">
-      <button id="btnAlign" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-medium shadow hover:bg-indigo-700">Align</button>
-      <button id="btnCopyPlain" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Copy Plain Column</button>
-      <button id="btnCopyValues" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Copy Values</button>
-      <button id="btnDownloadCsv" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 shadow">Download CSV</button>
-      <span id="sumOut" class="ml-auto text-sm text-slate-600"></span>
-    </section>
-
-    <!-- Results -->
-    <section class="grid md:grid-cols-2 gap-4">
-      <div class="bg-white rounded-2xl shadow p-4 space-y-3">
-        <div class="flex items-center gap-2">
-          <h2 class="font-semibold">Aligned Output (Plain Column)</h2>
-          <span id="statusCount" class="text-xs text-slate-500"></span>
-        </div>
-        <pre id="plainOut" class="whitespace-pre-wrap break-words font-mono text-sm bg-slate-50 rounded-xl p-3 min-h-[200px]"></pre>
-        <div class="space-y-2">
-          <h3 class="font-semibold">Values Only</h3>
-          <pre id="valuesOut" class="whitespace-pre-wrap break-words font-mono text-sm bg-slate-50 rounded-xl p-3 min-h-[120px]"></pre>
-        </div>
-      </div>
-      <div class="bg-white rounded-2xl shadow p-4 space-y-3">
-        <div class="flex items-center gap-2">
-          <h2 class="font-semibold">Match Report</h2>
-          <span class="text-xs text-slate-500">How each line was matched</span>
-        </div>
-        <div id="report" class="space-y-2 text-sm"></div>
-      </div>
-    </section>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
-  <script>
-    // ------------------ UTILITIES ------------------
-    const $ = s=>document.querySelector(s);
-    const money = n => isFinite(n) ? `$${Number(n).toFixed(2)}` : 'N/A';
-
-    function parseLines(text){ return text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean); }
-    function normalizeName(s){ return s.replace(/\(\s*new\s*\)/ig,'').replace(/\s+/g,' ').replace(/[–—]/g,'-').replace(/\s*@.*$/,'').trim().toLowerCase(); }
-
-    function parseRevenueMap(text){
-      const map = {};
-      for(const line of parseLines(text)){
-        const m = line.match(/\$\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?)/);
-        if(!m) continue;
-        let name = line.split(' - ')[0] || line.replace(/\$.*$/,'').trim();
-        name = name.replace(/\s*-\s*@.*$/,'').replace(/\s*@.*$/,'').trim();
-        map[normalizeName(name)] = parseFloat(m[1].replace(/,/g,''));
-      }
-      return map;
-    }
-
-    const defaultAliases = {
-      "heidi lavon free":"heidi free",
-      "heidi lavon vip":"heidi vip",
-      "julie free":"julie free",
-      "julie vip":"julie vip",
-      "ali smiles free":"ali smiles",
-      "chelsea wilde":"chelsea vip",
-      "blinkx":"blink vip",
-      "blinkx fansly":"blink vip",
-      "evie rose":"evie vip",
-      "jay":"jay vip",
-      "kay natrix":"kay",
-      "roxie sinner":"roxie vip",
-      "lilly hart":"lillyhart",
-      "sarah arabic":"sarah",
-      "clarus":"clarus vip",
-      "miko":"miko vip",
-      "miko free":"miko free",
-      "morgan":"morgan vip",
-      "morgan free":"morgan free",
-      "davina":"davina vip",
-      "davina free":"davina free",
-      "mythiccal":"mythiccal vip",
-      "mythiccal vip":"mythiccal vip",
-      "mysticbeing":"mysticbeing",
-      "mystic free":"mystic free",
-      "mystic vip":"mystic vip",
-      "darshelle main":"darshelle vip",
-      "darshelle free":"darshelle free",
-      "ali":"ali",
-      "ali free":"ali free",
-      "amber":"amber",
-      "asteria":"asteria",
-      "asteria free":"asteria free",
-      "blink vip":"blink vip",
-      "cora":"cora",
-      "dallas":"dallas",
-      "darcie":"darcie",
-      "frizzy":"frizzy",
-      "florence":"florence",
-      "reed":"reed",
-      "savannah":"savannah",
-      "savannah free":"savannah free",
-      "scarlett":"scarlett",
-      "tayla":"tayla",
-      "tabitha":"tabitha",
-      "luna":"luna",
-      "valeria":"valeria",
-      "zalia":"zalia",
-      "holly free":"holly free",
-      "holly vip":"holly vip",
-      "holly oftv":"holly oftv",
-      "kailyn free":"kailyn free",
-      "kailyn vip":"kailyn vip",
-      "lauren":"lauren",
-      "lauren free":"lauren free",
-      "jay free":"jay free",
-      "river":"river",
-      "joanie jobro":"joanie jobro",
-      "roxie free":"roxie free"
-    };
-
-    function makeFuser(keys){ return new Fuse(keys,{includeScore:true, threshold:0.25, ignoreLocation:true, distance:40}); }
-
-    function align(){
-      const models = parseLines($('#models').value).map(normalizeName);
-      const revenueMap = parseRevenueMap($('#revenue').value);
-      const revenueKeys = Object.keys(revenueMap);
-      const fuser = makeFuser(revenueKeys);
-      const rows=[]; let total=0; let counts={exact:0, alias:0, fuzzy:0, missing:0};
-
-      for(const model of models){
-        let key = model; let method='exact';
-        if(defaultAliases[model]){ key = defaultAliases[model]; method='alias'; }
-        let amt = revenueMap[key];
-
-        if(amt===undefined){
-          let best=null;
-          [key, model].forEach(t=>{
-            const r=fuser.search(t);
-            if(r.length && (!best || r[0].score<best.score)) best=r[0];
-          });
-          if(best && best.score<=0.12){ key=best.item; amt=revenueMap[key]; method=method.includes('alias')?'alias+fuzzy':'fuzzy'; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Aligner Tool (Simple - Fixed)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #111;
+            margin-top: 0;
+            padding-bottom: 10px;
+        }
+        .grid-aligner {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+        .box {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        textarea {
+            width: 100%;
+            height: 500px;
+            box-sizing: border-box; /* Important for padding */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: "Consolas", "Courier New", monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        textarea#output {
+            background-color: #f9f9f9;
+        }
+        button {
+            grid-column: 1 / -1; /* Span all columns */
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #status {
+            grid-column: 1 / -1; /* Span all columns */
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            font-weight: 600;
+            min-height: 1.2em;
+        }
+        
+        .report-box {
+            grid-column: 1 / -1; /* Span all columns */
+            margin-top: 15px;
+        }
+        #missingModels {
+            height: 150px;
+            background-color: #fffbe6;
+            color: #9a3412;
+            border-color: #fde68a;
+            font-weight: 600;
+        }
+        #unlistedData {
+            height: 150px;
+            background-color: #e6f7ff;
+            color: #0056b3;
+            border-color: #b3e0ff;
+            font-weight: 600;
         }
 
-        if(amt===undefined){ rows.push({model,key:'',amount:NaN,method:'missing'}); counts.missing++; }
-        else{ total+=amt; if(method==='exact')counts.exact++; else if(method.includes('alias'))counts.alias++; else counts.fuzzy++; rows.push({model,key,amount:amt,method}); }
-      }
+        @media (max-width: 1100px) {
+            .grid-aligner {
+                grid-template-columns: 1fr;
+            }
+            textarea {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
 
-      $('#plainOut').textContent = rows.map(r=>`${r.model} - ${isNaN(r.amount)?'N/A':money(r.amount)}`).join('\n');
-      $('#valuesOut').textContent = rows.map(r=>isNaN(r.amount)?'N/A':money(r.amount)).join('\n');
-      $('#sumOut').textContent = `Total = ${money(total)}`;
-      $('#statusCount').textContent = `Exact ${counts.exact} · Alias ${counts.alias} · Fuzzy ${counts.fuzzy} · Missing ${counts.missing}`;
+    <div class="container">
+        <h1>Model Aligner Tool</h1>
+        
+        <div class="grid-aligner">
+            <div class="box">
+                <label for="modelList">1. Model List (Your "Schedule")</label>
+                <textarea id="modelList" placeholder="Paste your clean, one-per-line model list here.
 
-      const frag=document.createDocumentFragment();
-      rows.forEach(r=>{
-        const div=document.createElement('div'); div.className='flex items-center justify-between gap-2 border border-slate-200 rounded-lg px-3 py-2';
-        const left=document.createElement('div'); left.innerHTML=`<span class="font-semibold">${r.model}</span>`+(r.key?` <span class="text-slate-400">→</span> <span class="text-slate-600">${r.key}</span>`:'');
-        const right=document.createElement('div'); const badge=document.createElement('span'); badge.className='badge '+(r.method==='exact'?'exact':r.method.includes('alias')?'alias':r.method==='fuzzy'?'fuzzy':'missing'); badge.textContent=r.method;
-        const amt=document.createElement('span'); amt.className='ml-3 font-mono'; amt.textContent=isNaN(r.amount)?'N/A':money(r.amount);
-        right.appendChild(badge); right.appendChild(amt); div.appendChild(left); div.appendChild(right); frag.appendChild(div);
-      });
-      $('#report').innerHTML=''; $('#report').appendChild(frag);
-    }
+Example:
+Ali S Main
+Ali S Free
+Heidi Main
+Heidi Free
+..."></textarea>
+            </div>
+            <div class="box">
+                <label for="rawData">2. Raw Data (with $ values)</label>
+                <textarea id="rawData" placeholder="Paste your raw data with dollar amounts here...
 
-    $('#btnAlign').addEventListener('click',align);
-    $('#btnCopyPlain').addEventListener('click',()=>navigator.clipboard.writeText($('#plainOut').textContent));
-    $('#btnCopyValues').addEventListener('click',()=>navigator.clipboard.writeText($('#valuesOut').textContent));
-    $('#btnDownloadCsv').addEventListener('click',()=>{
-      const lines=$('#plainOut').textContent.split(/\n/).filter(Boolean);
-      if(!lines.length) return;
-      const rows=lines.map(l=>{ const m=l.match(/^(.*) - \$(.*)$/); return m?`${JSON.stringify(m[1])},${m[2]}`:`${JSON.stringify(l)},`; });
-      const csv='Model,Amount\n'+rows.join('\n');
-      const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='aligned.csv'; a.click(); URL.revokeObjectURL(a.href);
-    });
-  </script>
+Example:
+Ali S Main @alismilesyou 	 $ 731.60
+Heidi Free - $0.00
+..."></textarea>
+            </div>
+            <div class="box">
+                <label for="output">3. Aligned Output (Values Only)</label>
+                <textarea id="output" readonly placeholder="Your aligned numbers will appear here..."></textarea>
+            </div>
+            
+            <button id="alignButton">Align Lists</button>
+            <div id="status"></div>
+
+            <div class="box report-box" id="missingModelsBox" style="display: none;">
+                <label for="missingModels">Missing from Raw Data (Models in your "Schedule" but not in "Raw Data")</label>
+                <textarea id="missingModels" readonly></textarea>
+            </div>
+            <div class="box report-box" id="unlistedDataBox" style="display: none;">
+                <label for="unlistedData">Models in Raw Data (but missing from your "Schedule")</label>
+                <textarea id="unlistedData" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Helper: Normalizes all name formats ---
+        function normalizeName(name) {
+            const suffixes = ['main', 'free', 'vip', 'fansly', 'oftv', 'niche', 'arabic'];
+            let clean = name.split('@')[0];
+            clean = clean.trim();
+            if (clean.endsWith('-')) {
+                clean = clean.substring(0, clean.length - 1).trim();
+            }
+            const words = clean.split(/\s+/);
+            let suffixIndex = -1;
+            for (let i = words.length - 1; i >= 0; i--) {
+                if (suffixes.includes(words[i].toLowerCase())) {
+                    suffixIndex = i;
+                    break;
+                }
+            }
+            let finalName;
+            if (suffixIndex !== -1) {
+                finalName = words.slice(0, suffixIndex + 1).join(' ');
+            } else {
+                finalName = words.join(' ');
+            }
+            return finalName.toLowerCase().replace(/\s+/g, ' ');
+        }
+
+        // --- Event Listener for Aligner Button ---
+        document.getElementById('alignButton').addEventListener('click', function() {
+            const modelListEl = document.getElementById('modelList');
+            const rawDataEl = document.getElementById('rawData');
+            const outputEl = document.getElementById('output');
+            const statusEl = document.getElementById('status');
+            const missingModelsBox = document.getElementById('missingModelsBox');
+            const missingModelsEl = document.getElementById('missingModels');
+            const unlistedDataBox = document.getElementById('unlistedDataBox');
+            const unlistedDataEl = document.getElementById('unlistedData');
+
+            outputEl.value = "";
+            statusEl.textContent = "";
+            missingModelsEl.value = "";
+            missingModelsBox.style.display = "none";
+            unlistedDataEl.value = "";
+            unlistedDataBox.style.display = "none";
+            
+            try {
+                // 1. Build Data Map from Raw Data
+                const dataMap = new Map();
+                const rawLines = rawDataEl.value.split('\n');
+                const valueRegex = /\$\s*([\d,]+\.\d{2})/;
+
+                for (const line of rawLines) {
+                    if (!line.trim()) continue;
+                    const valueMatch = line.match(valueRegex);
+                    if (!valueMatch) continue;
+                    const amount = valueMatch[1].replace(/,/g, '');
+                    const namePart = line.substring(0, valueMatch.index);
+                    const originalNameForDisplay = namePart.split('@')[0].trim().replace(/\s+/g, ' ');
+                    const key = normalizeName(namePart);
+                    if (key && !dataMap.has(key)) {
+                        dataMap.set(key, { amount: amount, originalName: originalNameForDisplay });
+                    }
+                }
+
+                // 2. Process the Model List
+                const modelsToAlign = modelListEl.value.split('\n');
+                const output = [];
+                const modelListKeys = new Set();
+                let notFoundCount = 0;
+                let notFoundList = [];
+
+                for (const modelName of modelsToAlign) {
+                    const cleanName = modelName.trim();
+                    if (!cleanName) continue;
+                    const key = normalizeName(cleanName);
+                    modelListKeys.add(key);
+                    if (dataMap.has(key)) {
+                        output.push(dataMap.get(key).amount);
+                    } else {
+                        output.push("0.00");
+                        notFoundCount++;
+                        notFoundList.push(cleanName.replace(/\s+/g, ' ')); 
+                    }
+                }
+
+                // 3. Display main result
+                outputEl.value = output.join('\n');
+                
+                // 4. Check for unlisted models
+                const notInModelList = []; // This is the array
+                for (const [rawKey, data] of dataMap.entries()) {
+                    if (!modelListKeys.has(rawKey)) {
+                        notInModelList.push(data.originalName); 
+                    }
+                }
+
+                // 5. Update status and reports
+                if (notFoundCount > 0) {
+                    statusEl.style.color = '#c0392b';
+                    statusEl.textContent = `Warning: ${notFoundCount} model(s) from your list not found in raw data.`;
+                    missingModelsEl.value = notFoundList.join('\n');
+                    missingModelsBox.style.display = 'block';
+                } else {
+                    statusEl.style.color = '#27ae60';
+                    statusEl.textContent = `Alignment Complete! All ${output.length} models matched.`;
+                }
+
+                if (notInModelList.length > 0) {
+                    // This is the corrected line
+                    unlistedDataEl.value = notInModelList.join('\n'); 
+                    
+                    unlistedDataBox.style.display = 'block';
+                    if (notFoundCount === 0) {
+                        statusEl.textContent += ` (Note: ${notInModelList.length} models from raw data were not in your list).`;
+                        statusEl.style.color = '#0056b3';
+                    }
+                }
+
+            } catch (error) {
+                statusEl.style.color = '#c0392b';
+                statusEl.textContent = `An error occurred: ${error.message}`;
+                console.error(error);
+            }
+        });
+        
+    </script>
+
 </body>
 </html>
